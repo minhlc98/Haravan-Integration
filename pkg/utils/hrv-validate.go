@@ -8,7 +8,12 @@ import (
 )
 
 func ValidateHaravanWebhook(c fiber.Ctx) bool {
-	signature := c.Get("X-Haravan-Hmac-Sha256")
-	sh := CreateHmacSignatureBase64(c.Body(), os.Getenv("WEBHOOK_SECRET"))
+	topic := c.Get("X-Haravan-Topic")
+	signature := c.Get("X-Haravan-Hmacsha256")
+	orgid := c.Get("X-Haravan-Org-Id")
+	if topic == "" || signature == "" || orgid == "" {
+		return false
+	}
+	sh := CreateHmacSignatureBase64(c.Body(), os.Getenv("APP_SECRET"))
 	return hmac.Equal([]byte(sh), []byte(signature)) 
 }

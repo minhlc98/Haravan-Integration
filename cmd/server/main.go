@@ -67,8 +67,6 @@ func installCallback(c fiber.Ctx) error {
 		return c.Status(500).SendString(err.Error())
 	}
 
-	fmt.Println("token:", token.AccessToken)
-
 	if err := subscribeWebhook(token.AccessToken); err != nil {
 		return c.Status(500).SendString(err.Error())
 	}
@@ -146,7 +144,7 @@ func subscribeWebhook(accessToken string) error {
 
 func verifyWebhook(c fiber.Ctx) error {
 	if c.Query("hub.verify_token") != os.Getenv("WEBHOOK_VERIFY_TOKEN") {
-		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"message": "Invalid verify token",
 		})
 	}
@@ -155,11 +153,11 @@ func verifyWebhook(c fiber.Ctx) error {
 
 func handleWebhook(c fiber.Ctx) error {
 	if !utils.ValidateHaravanWebhook(c) {
-		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"message": "Invalid signature",
 		})
 	}
-	log.Println("Webhook received:", c.Body())
+	log.Println("Webhook received:", string(c.Body()))
 	return c.JSON(fiber.Map{
 		"message": "Webhook received",
 	})
